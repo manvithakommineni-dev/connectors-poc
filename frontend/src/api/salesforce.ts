@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE = "http://localhost:8000/api/v1/salesforce";
+const BASE = "http://localhost:8080/api/v1/salesforce";
 
 export interface SFObject {
   name: string;
@@ -59,6 +59,8 @@ export const salesforceApi = {
   ping: () => axios.get(`${BASE}/ping`),
 
   connect: () => axios.get<ConnectionInfo>(`${BASE}/connect`),
+
+  getSetupGuide: () => axios.get(`${BASE}/setup-guide`),
 
   listObjects: (queryableOnly = true, customOnly = false) =>
     axios.get<{ total: number; objects: SFObject[] }>(`${BASE}/objects`, {

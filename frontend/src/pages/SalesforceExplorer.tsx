@@ -5,6 +5,7 @@ import type { SFObject, SFObjectMetadata } from "../api/salesforce";
 import ObjectList from "../components/ObjectList";
 import MetadataPanel from "../components/MetadataPanel";
 import ConnectionBadge from "../components/ConnectionBadge";
+import SetupGuide from "../components/SetupGuide";
 
 export default function SalesforceExplorer() {
   const [selectedObject, setSelectedObject] = useState<string | null>(null);
@@ -62,13 +63,7 @@ export default function SalesforceExplorer() {
       )}
 
       {/* Error state */}
-      {connectionQuery.isError && (
-        <div style={{ margin: 24, padding: 16, background: "#450a0a", border: "1px solid #991b1b", borderRadius: 8, color: "#fca5a5" }}>
-          <b>Connection Failed.</b> Check your <code>.env</code> credentials in <code>backend/.env</code> and ensure the backend is running on port 8000.
-          <br />
-          <code style={{ fontSize: 11, color: "#f87171" }}>{String(connectionQuery.error)}</code>
-        </div>
-      )}
+      {connectionQuery.isError && <SetupGuide error={String(connectionQuery.error)} />}
 
       {/* Main layout */}
       <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>

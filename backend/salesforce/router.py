@@ -18,6 +18,8 @@ def _get_sf():
         return get_salesforce_connection()
     except SalesforceAuthenticationFailed as e:
         raise HTTPException(status_code=401, detail=f"Salesforce authentication failed: {str(e)}")
+    except ConnectionError as e:
+        raise HTTPException(status_code=401, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Could not connect to Salesforce: {str(e)}")
 
@@ -26,6 +28,48 @@ def _get_sf():
 def ping():
     """Health check — confirm backend is alive."""
     return {"status": "ok", "connector": "salesforce"}
+
+
+@router.get("/setup-guide")
+def setup_guide():
+    """
+    Returns the exact steps needed to make the Salesforce credentials work
+    for OAuth Username-Password flow (required for newer Salesforce orgs).
+    """
+    return {
+        "title": "Salesforce Connected App Setup — Required Steps",
+        "steps": [
+            {
+                "step": 1,
+                "where": "Salesforce org → Setup → Identity → OAuth and OpenID Connect Settings",
+                "action": "Enable 'Allow OAuth Username-Password Flows'",
+                "note": "Newer orgs (Spring 2023+) have this DISABLED by default.",
+            },
+            {
+                "step": 2,
+                "where": "Setup → App Manager → [Your Connected App] → Edit",
+                "action": "Enable 'Enable OAuth Username-Password Flows' checkbox",
+                "note": "Must be enabled at the Connected App level too.",
+            },
+            {
+                "step": 3,
+                "where": "My Settings → Personal → Reset My Security Token",
+                "action": "Reset and get a new security token (emailed to you)",
+                "note": "Token resets whenever you change the password. Update SF_SECURITY_TOKEN in .env",
+            },
+            {
+                "step": 4,
+                "where": "backend/.env",
+                "action": "Confirm SF_USERNAME, SF_PASSWORD, SF_SECURITY_TOKEN, SF_CONSUMER_KEY, SF_CONSUMER_SECRET are correct",
+                "note": "Password in .env must NOT include the security token — the code appends it automatically.",
+            },
+        ],
+        "env_keys_needed": [
+            "SF_USERNAME", "SF_PASSWORD", "SF_SECURITY_TOKEN",
+            "SF_CONSUMER_KEY", "SF_CONSUMER_SECRET", "SF_INSTANCE_URL",
+        ],
+        "docs": "https://help.salesforce.com/s/articleView?id=sf.remoteaccess_oauth_username_password_flow.htm",
+    }
 
 
 @router.get("/connect")
