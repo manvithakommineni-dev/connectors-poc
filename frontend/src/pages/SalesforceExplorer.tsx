@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { salesforceApi, SFObject, SFObjectMetadata } from "../api/salesforce";
+import { salesforceApi } from "../api/salesforce";
+import type { SFObject, SFObjectMetadata } from "../api/salesforce";
 import ObjectList from "../components/ObjectList";
 import MetadataPanel from "../components/MetadataPanel";
 import ConnectionBadge from "../components/ConnectionBadge";
@@ -27,12 +28,12 @@ export default function SalesforceExplorer() {
   const metadataQuery = useQuery({
     queryKey: ["sf-metadata", selectedObject],
     queryFn: () =>
-      salesforceApi.getMetadata(selectedObject!).then((r) => r.data),
+      salesforceApi.getMetadata(selectedObject!).then((r) => r.data as SFObjectMetadata),
     enabled: !!selectedObject,
   });
 
-  const filteredObjects: SFObject[] = (objectsQuery.data?.objects ?? []).filter(
-    (o) =>
+  const filteredObjects: SFObject[] = ((objectsQuery.data?.objects ?? []) as SFObject[]).filter(
+    (o: SFObject) =>
       o.name.toLowerCase().includes(search.toLowerCase()) ||
       o.label.toLowerCase().includes(search.toLowerCase())
   );

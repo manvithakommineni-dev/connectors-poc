@@ -1,4 +1,4 @@
-import { SFObject } from "../api/salesforce";
+import type { SFObject } from "../api/salesforce";
 
 interface Props {
   objects: SFObject[];

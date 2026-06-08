@@ -42,6 +42,7 @@ export interface SFObjectMetadata {
     child_sobject: string;
     field: string;
     relationship_name: string | null;
+    cascade_delete: boolean;
   }>;
   record_types: Array<{ id: string; name: string; developer_name: string }>;
 }

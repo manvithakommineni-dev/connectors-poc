@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SFObjectMetadata, SFField } from "../api/salesforce";
+import type { SFObjectMetadata, SFField } from "../api/salesforce";
 import { useQuery } from "@tanstack/react-query";
 import { salesforceApi } from "../api/salesforce";
 
@@ -44,7 +44,7 @@ export default function MetadataPanel({ objectName, metadata, loading, error }: 
 
   const sampleQuery = useQuery({
     queryKey: ["sf-sample", objectName],
-    queryFn: () => salesforceApi.getSampleData(objectName, 5).then((r) => r.data),
+    queryFn: () => salesforceApi.getSampleData(objectName, 5).then((r) => r.data as Record<string, unknown>),
     enabled: tab === "sample",
   });
 
