@@ -10,7 +10,11 @@ class Settings(BaseSettings):
     SF_CONSUMER_KEY: str = ""
     SF_CONSUMER_SECRET: str = ""
     SF_DOMAIN: str = "login"
-    SF_INSTANCE_URL: str = ""  # e.g. https://orgfarm-80aa45324e-dev-ed.develop.my.salesforce.com
+    SF_INSTANCE_URL: str = ""
+    SF_OAUTH_CALLBACK_URL: str = "http://localhost:8000/api/v1/salesforce/oauth/callback"
+
+    # HubSpot
+    HS_ACCESS_TOKEN: str = ""
 
     APP_ENV: str = "development"
     CORS_ORIGINS: List[str] = ["http://localhost:5173"]

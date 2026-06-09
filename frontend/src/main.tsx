@@ -1,7 +1,8 @@
-import { StrictMode } from "react";
+import { StrictMode, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import SalesforceExplorer from "./pages/SalesforceExplorer";
+import HubspotExplorer from "./pages/HubspotExplorer";
 import "./index.css";
 
 const queryClient = new QueryClient({
@@ -10,10 +11,66 @@ const queryClient = new QueryClient({
   },
 });
 
+type Connector = "salesforce" | "hubspot";
+
+const CONNECTORS: { id: Connector; label: string; color: string; bg: string }[] = [
+  { id: "salesforce", label: "Salesforce", color: "#60a5fa", bg: "#1e3a5f" },
+  { id: "hubspot", label: "HubSpot", color: "#fb923c", bg: "#431407" },
+];
+
+function App() {
+  const [active, setActive] = useState<Connector>("salesforce");
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "#0f172a" }}>
+      {/* Connector selector nav */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "8px 20px",
+          background: "#020617",
+          borderBottom: "1px solid #1e293b",
+        }}
+      >
+        <span style={{ fontSize: 12, color: "#475569", marginRight: 4, fontWeight: 600 }}>
+          CONNECTOR
+        </span>
+        {CONNECTORS.map((c) => (
+          <button
+            key={c.id}
+            onClick={() => setActive(c.id)}
+            style={{
+              padding: "4px 16px",
+              borderRadius: 20,
+              border: "none",
+              cursor: "pointer",
+              fontSize: 12,
+              fontWeight: 600,
+              background: active === c.id ? c.bg : "#1e293b",
+              color: active === c.id ? c.color : "#64748b",
+              transition: "all 0.15s",
+            }}
+          >
+            {c.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Active connector view */}
+      <div style={{ flex: 1, overflow: "hidden" }}>
+        {active === "salesforce" && <SalesforceExplorer />}
+        {active === "hubspot" && <HubspotExplorer />}
+      </div>
+    </div>
+  );
+}
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <SalesforceExplorer />
+      <App />
     </QueryClientProvider>
   </StrictMode>
 );

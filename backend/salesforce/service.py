@@ -1,146 +1,152 @@
 """
 Salesforce connectivity and metadata retrieval service.
 
-Authentication strategy (tries in order):
-  1. OAuth 2.0 Username-Password flow (if SF_CONSUMER_KEY is set) — recommended
-  2. simple_salesforce built-in login (username + password + security_token)
-     Requires "Allow OAuth Username-Password Flows" enabled in org:
-     Setup → Identity → OAuth and OpenID Connect Settings
+Authentication strategy:
+  PRIMARY: OAuth 2.0 Authorization Code flow (browser-based login — always works)
+    Step 1: User visits /api/v1/salesforce/auth → redirected to Salesforce login
+    Step 2: After login, Salesforce redirects to /api/v1/salesforce/oauth/callback
+    Step 3: Backend exchanges code for access token and stores it in memory
+    Step 4: All API calls use the stored token
 
-Credentials needed in backend/.env:
-  SF_USERNAME, SF_PASSWORD, SF_SECURITY_TOKEN
-  SF_CONSUMER_KEY, SF_CONSUMER_SECRET  (optional but recommended)
-  SF_DOMAIN = login   (use 'test' for sandbox)
+  FALLBACK: OAuth 2.0 Client Credentials (if token already stored)
 """
 
 import requests
 import logging
+import hashlib
+import base64
+import secrets
 from simple_salesforce import Salesforce
-from simple_salesforce.exceptions import SalesforceAuthenticationFailed
 from core.config import settings
 
 logger = logging.getLogger(__name__)
 
-SALESFORCE_TOKEN_URL = "https://{domain}.salesforce.com/services/oauth2/token"
+# In-memory token store (cleared on server restart)
+_token_store: dict = {}
+_pkce_store: dict = {}  # stores code_verifier for PKCE flow
 
 
-def _oauth_password_flow() -> Salesforce:
-    """OAuth 2.0 Username-Password grant — requires Connected App credentials."""
-    # Use org-specific My Domain URL if provided (required for External Client Apps)
-    if settings.SF_INSTANCE_URL:
-        token_url = f"{settings.SF_INSTANCE_URL.rstrip('/')}/services/oauth2/token"
-    else:
-        token_url = SALESFORCE_TOKEN_URL.format(domain=settings.SF_DOMAIN)
+def store_token(access_token: str, instance_url: str, refresh_token: str = "") -> None:
+    _token_store["access_token"] = access_token
+    _token_store["instance_url"] = instance_url
+    _token_store["refresh_token"] = refresh_token
+    logger.info("Salesforce token stored. Instance: %s", instance_url)
 
+
+def get_stored_token() -> dict | None:
+    if _token_store.get("access_token"):
+        return _token_store.copy()
+    return None
+
+
+def clear_token() -> None:
+    _token_store.clear()
+
+
+def _generate_pkce() -> tuple[str, str]:
+    """Generate PKCE code_verifier and code_challenge."""
+    code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b"=").decode("utf-8")
+    code_challenge = base64.urlsafe_b64encode(
+        hashlib.sha256(code_verifier.encode("utf-8")).digest()
+    ).rstrip(b"=").decode("utf-8")
+    return code_verifier, code_challenge
+
+
+def get_auth_url() -> str:
+    """Build the Salesforce OAuth Authorization URL for browser redirect (with PKCE)."""
+    base = settings.SF_INSTANCE_URL.rstrip("/") if settings.SF_INSTANCE_URL else f"https://{settings.SF_DOMAIN}.salesforce.com"
+    code_verifier, code_challenge = _generate_pkce()
+    _pkce_store["code_verifier"] = code_verifier
+    return (
+        f"{base}/services/oauth2/authorize"
+        f"?response_type=code"
+        f"&client_id={settings.SF_CONSUMER_KEY}"
+        f"&redirect_uri={settings.SF_OAUTH_CALLBACK_URL}"
+        f"&scope=api"
+        f"&code_challenge={code_challenge}"
+        f"&code_challenge_method=S256"
+    )
+
+
+def exchange_code_for_token(code: str) -> dict:
+    """Exchange OAuth authorization code for access token."""
+    base = settings.SF_INSTANCE_URL.rstrip("/") if settings.SF_INSTANCE_URL else f"https://{settings.SF_DOMAIN}.salesforce.com"
+    token_url = f"{base}/services/oauth2/token"
     payload = {
-        "grant_type": "password",
+        "grant_type": "authorization_code",
+        "code": code,
         "client_id": settings.SF_CONSUMER_KEY,
         "client_secret": settings.SF_CONSUMER_SECRET,
-        "username": settings.SF_USERNAME,
-        "password": settings.SF_PASSWORD + settings.SF_SECURITY_TOKEN,
+        "redirect_uri": settings.SF_OAUTH_CALLBACK_URL,
+        "code_verifier": _pkce_store.get("code_verifier", ""),
     }
     resp = requests.post(token_url, data=payload)
     if resp.status_code != 200:
         err = resp.json()
         raise ConnectionError(
-            f"Salesforce OAuth failed [{resp.status_code}]: "
-            f"{err.get('error')}: {err.get('error_description')}"
+            f"Token exchange failed [{resp.status_code}]: {err.get('error')}: {err.get('error_description')}"
         )
-    token_data = resp.json()
-    return Salesforce(
-        instance_url=token_data["instance_url"],
-        session_id=token_data["access_token"],
-    )
+    return resp.json()
 
 
-def _simple_login() -> Salesforce:
-    """simple_salesforce built-in login — works when Username-Password flows enabled in org."""
-    return Salesforce(
-        username=settings.SF_USERNAME,
-        password=settings.SF_PASSWORD,
-        security_token=settings.SF_SECURITY_TOKEN,
-        domain=settings.SF_DOMAIN,
-    )
+def refresh_access_token() -> str:
+    """Use refresh token to get a new access token."""
+    refresh_token = _token_store.get("refresh_token")
+    if not refresh_token:
+        raise ConnectionError("No refresh token stored. Please re-authenticate via /api/v1/salesforce/auth")
+    base = settings.SF_INSTANCE_URL.rstrip("/") if settings.SF_INSTANCE_URL else f"https://{settings.SF_DOMAIN}.salesforce.com"
+    token_url = f"{base}/services/oauth2/token"
+    payload = {
+        "grant_type": "refresh_token",
+        "refresh_token": refresh_token,
+        "client_id": settings.SF_CONSUMER_KEY,
+        "client_secret": settings.SF_CONSUMER_SECRET,
+    }
+    resp = requests.post(token_url, data=payload)
+    if resp.status_code != 200:
+        raise ConnectionError("Token refresh failed. Please re-authenticate via /api/v1/salesforce/auth")
+    data = resp.json()
+    _token_store["access_token"] = data["access_token"]
+    return data["access_token"]
 
 
 def get_salesforce_connection() -> Salesforce:
     """
-    Connect to Salesforce.
-    Strategy (tries in order until one works):
-      1. OAuth 2.0 password flow via My Domain URL (if consumer key + instance_url set)
-      2. OAuth 2.0 password flow via login.salesforce.com
-      3. simple_salesforce direct username/password/token login
+    Return an authenticated Salesforce connection.
+    Requires prior OAuth login via /api/v1/salesforce/auth endpoint.
     """
-    errors: list[str] = []
-
-    if settings.SF_CONSUMER_KEY and settings.SF_CONSUMER_SECRET:
-        # Attempt 1 — My Domain token endpoint (if instance URL is set)
-        if settings.SF_INSTANCE_URL:
-            try:
-                logger.info("Attempt 1: OAuth via My Domain URL")
-                return _oauth_password_flow()
-            except Exception as e:
-                logger.warning("OAuth (My Domain) failed: %s — trying standard login URL", e)
-                errors.append(f"OAuth/MyDomain: {e}")
-
-        # Attempt 2 — standard login.salesforce.com token endpoint
-        try:
-            logger.info("Attempt 2: OAuth via login.salesforce.com")
-            payload = {
-                "grant_type": "password",
-                "client_id": settings.SF_CONSUMER_KEY,
-                "client_secret": settings.SF_CONSUMER_SECRET,
-                "username": settings.SF_USERNAME,
-                "password": settings.SF_PASSWORD + settings.SF_SECURITY_TOKEN,
-            }
-            token_url = f"https://{settings.SF_DOMAIN}.salesforce.com/services/oauth2/token"
-            resp = requests.post(token_url, data=payload)
-            if resp.status_code == 200:
-                td = resp.json()
-                return Salesforce(instance_url=td["instance_url"], session_id=td["access_token"])
-            err = resp.json()
-            raise ConnectionError(f"{err.get('error')}: {err.get('error_description')}")
-        except Exception as e:
-            logger.warning("OAuth (standard) failed: %s — falling back to simple_salesforce", e)
-            errors.append(f"OAuth/Standard: {e}")
-
-    # Attempt 3 — simple_salesforce direct login
+    token = get_stored_token()
+    if not token:
+        raise ConnectionError(
+            "Not authenticated. Please visit http://localhost:8000/api/v1/salesforce/auth "
+            "in your browser to log in with Salesforce."
+        )
     try:
-        logger.info("Attempt 3: simple_salesforce username/password login")
-        return _simple_login()
-    except Exception as e:
-        errors.append(f"SimpleLogin: {e}")
-
-    soap_disabled = any("SOAP API login" in str(err) or "SOAP" in str(err) for err in errors)
-    invalid_grant = any("invalid_grant" in str(err) for err in errors)
-
-    hint = ""
-    if invalid_grant:
-        hint = (
-            " | LIKELY FIX: In Salesforce org → Setup → Identity → "
-            "'OAuth and OpenID Connect Settings' → enable 'Allow OAuth Username-Password Flows'. "
-            "Also in App Manager → your Connected App → Edit → enable same. "
-            "Also verify your password/security token are current."
+        sf = Salesforce(
+            instance_url=token["instance_url"],
+            session_id=token["access_token"],
         )
-    elif soap_disabled:
-        hint = (
-            " | SOAP login is disabled in this org. "
-            "Enable 'Allow OAuth Username-Password Flows' in Setup → Identity → "
-            "OAuth and OpenID Connect Settings."
-        )
-
-    raise ConnectionError(
-        "All Salesforce authentication methods failed.\n"
-        + "\n".join(errors)
-        + hint
-    )
+        # Quick check to verify token is still valid
+        sf.describe()
+        return sf
+    except Exception:
+        # Try refreshing the token once
+        try:
+            new_token = refresh_access_token()
+            return Salesforce(
+                instance_url=token["instance_url"],
+                session_id=new_token,
+            )
+        except Exception:
+            clear_token()
+            raise ConnectionError(
+                "Session expired. Please visit http://localhost:8000/api/v1/salesforce/auth "
+                "in your browser to re-authenticate."
+            )
 
 
 def get_all_objects(sf: Salesforce) -> list[dict]:
-    """
-    Retrieve all SObjects (tables) from the Salesforce org.
-    Returns name, label, queryable, createable, updateable flags per object.
-    """
+    """Retrieve all SObjects (tables) from the Salesforce org."""
     describe = sf.describe()
     objects = []
     for obj in describe["sobjects"]:
@@ -161,12 +167,7 @@ def get_all_objects(sf: Salesforce) -> list[dict]:
 
 
 def get_object_metadata(sf: Salesforce, object_name: str) -> dict:
-    """
-    Full metadata for a specific SObject:
-    - All fields: name, type, length, nillable, relationships, picklist values
-    - Child relationships (reverse lookups)
-    - Record types
-    """
+    """Full metadata for a specific SObject: fields, child relationships, record types."""
     obj_describe = getattr(sf, object_name).describe()
 
     fields = []
@@ -232,10 +233,7 @@ def get_object_metadata(sf: Salesforce, object_name: str) -> dict:
 
 
 def get_object_sample_data(sf: Salesforce, object_name: str, limit: int = 5) -> dict:
-    """
-    Run a SOQL query to fetch sample rows from a Salesforce object.
-    Skips compound fields (address, location) which can't be directly queried.
-    """
+    """Run a SOQL query to fetch sample rows from a Salesforce object."""
     obj_describe = getattr(sf, object_name).describe()
     queryable_fields = [
         f["name"]
@@ -256,10 +254,12 @@ def get_object_sample_data(sf: Salesforce, object_name: str, limit: int = 5) -> 
 def test_connection(sf: Salesforce) -> dict:
     """Return basic org info to confirm connection is alive."""
     org_info = sf.describe()
+    token = get_stored_token()
     return {
         "connected": True,
-        "instance_url": sf.base_url,
-        "api_version": sf.api_version,
-        "org_objects_count": len(org_info["sobjects"]),
-        "username": settings.SF_USERNAME,
+        "instance_url": str(token.get("instance_url", "")) if token else "",
+        "api_version": str(sf.sf_version),
+        "org_objects_count": int(len(org_info["sobjects"])),
+        "username": str(settings.SF_USERNAME),
+        "auth_method": "OAuth Authorization Code",
     }

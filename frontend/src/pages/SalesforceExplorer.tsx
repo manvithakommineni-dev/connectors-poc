@@ -40,7 +40,7 @@ export default function SalesforceExplorer() {
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "#0f172a", color: "#e2e8f0", fontFamily: "Inter, system-ui, sans-serif" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#0f172a", color: "#e2e8f0", fontFamily: "Inter, system-ui, sans-serif" }}>
       {/* Header */}
       <header style={{ padding: "16px 24px", borderBottom: "1px solid #1e293b", display: "flex", alignItems: "center", gap: 16, background: "#0f172a" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>

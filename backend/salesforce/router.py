@@ -1,12 +1,17 @@
 from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import RedirectResponse, HTMLResponse
 from salesforce.service import (
     get_salesforce_connection,
     get_all_objects,
     get_object_metadata,
     get_object_sample_data,
     test_connection,
+    get_auth_url,
+    exchange_code_for_token,
+    store_token,
+    get_stored_token,
+    clear_token,
 )
-from simple_salesforce.exceptions import SalesforceAuthenticationFailed
 import logging
 
 logger = logging.getLogger(__name__)
@@ -16,68 +21,81 @@ router = APIRouter(prefix="/salesforce", tags=["Salesforce"])
 def _get_sf():
     try:
         return get_salesforce_connection()
-    except SalesforceAuthenticationFailed as e:
-        raise HTTPException(status_code=401, detail=f"Salesforce authentication failed: {str(e)}")
     except ConnectionError as e:
         raise HTTPException(status_code=401, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Could not connect to Salesforce: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Salesforce error: {str(e)}")
 
 
-@router.get("/ping")
-def ping():
-    """Health check — confirm backend is alive."""
-    return {"status": "ok", "connector": "salesforce"}
+# ── OAuth Flow ────────────────────────────────────────────────────────────────
 
-
-@router.get("/setup-guide")
-def setup_guide():
+@router.get("/auth")
+def salesforce_login():
     """
-    Returns the exact steps needed to make the Salesforce credentials work
-    for OAuth Username-Password flow (required for newer Salesforce orgs).
+    Step 1: Redirect the browser to Salesforce login page.
+    Visit http://localhost:8000/api/v1/salesforce/auth in your browser.
+    After login, Salesforce redirects back and the token is stored automatically.
     """
+    url = get_auth_url()
+    logger.info("Redirecting to Salesforce OAuth: %s", url)
+    return RedirectResponse(url=url)
+
+
+@router.get("/oauth/callback")
+def oauth_callback(code: str = None, error: str = None, error_description: str = None):
+    """
+    Step 2: Salesforce redirects here after login with an authorization code.
+    The code is exchanged for an access token automatically.
+    """
+    if error:
+        raise HTTPException(status_code=400, detail=f"OAuth error: {error} — {error_description}")
+    if not code:
+        raise HTTPException(status_code=400, detail="No authorization code received from Salesforce.")
+
+    try:
+        token_data = exchange_code_for_token(code)
+        store_token(
+            access_token=token_data["access_token"],
+            instance_url=token_data["instance_url"],
+            refresh_token=token_data.get("refresh_token", ""),
+        )
+        return HTMLResponse(content="""
+        <html><body style="font-family:sans-serif;max-width:600px;margin:60px auto;text-align:center;">
+            <h2 style="color:#2e7d32">✅ Salesforce Connected Successfully!</h2>
+            <p>You are now authenticated. You can close this tab.</p>
+            <p>Test the connection: <a href="/api/v1/salesforce/connect">/api/v1/salesforce/connect</a></p>
+            <p>View all objects: <a href="/api/v1/salesforce/objects">/api/v1/salesforce/objects</a></p>
+            <p>API docs: <a href="/docs">/docs</a></p>
+        </body></html>
+        """)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Token exchange failed: {str(e)}")
+
+
+@router.get("/auth/status")
+def auth_status():
+    """Check if the backend is currently authenticated with Salesforce."""
+    token = get_stored_token()
+    if token:
+        return {"authenticated": True, "instance_url": token["instance_url"]}
     return {
-        "title": "Salesforce Connected App Setup — Required Steps",
-        "steps": [
-            {
-                "step": 1,
-                "where": "Salesforce org → Setup → Identity → OAuth and OpenID Connect Settings",
-                "action": "Enable 'Allow OAuth Username-Password Flows'",
-                "note": "Newer orgs (Spring 2023+) have this DISABLED by default.",
-            },
-            {
-                "step": 2,
-                "where": "Setup → App Manager → [Your Connected App] → Edit",
-                "action": "Enable 'Enable OAuth Username-Password Flows' checkbox",
-                "note": "Must be enabled at the Connected App level too.",
-            },
-            {
-                "step": 3,
-                "where": "My Settings → Personal → Reset My Security Token",
-                "action": "Reset and get a new security token (emailed to you)",
-                "note": "Token resets whenever you change the password. Update SF_SECURITY_TOKEN in .env",
-            },
-            {
-                "step": 4,
-                "where": "backend/.env",
-                "action": "Confirm SF_USERNAME, SF_PASSWORD, SF_SECURITY_TOKEN, SF_CONSUMER_KEY, SF_CONSUMER_SECRET are correct",
-                "note": "Password in .env must NOT include the security token — the code appends it automatically.",
-            },
-        ],
-        "env_keys_needed": [
-            "SF_USERNAME", "SF_PASSWORD", "SF_SECURITY_TOKEN",
-            "SF_CONSUMER_KEY", "SF_CONSUMER_SECRET", "SF_INSTANCE_URL",
-        ],
-        "docs": "https://help.salesforce.com/s/articleView?id=sf.remoteaccess_oauth_username_password_flow.htm",
+        "authenticated": False,
+        "message": "Not authenticated. Visit http://localhost:8000/api/v1/salesforce/auth to log in.",
     }
 
 
+@router.get("/auth/logout")
+def logout():
+    """Clear the stored Salesforce session."""
+    clear_token()
+    return {"message": "Logged out. Visit /api/v1/salesforce/auth to re-authenticate."}
+
+
+# ── Metadata Endpoints ────────────────────────────────────────────────────────
+
 @router.get("/connect")
 def connect():
-    """
-    Test Salesforce connectivity.
-    Returns org info: instance URL, API version, total object count.
-    """
+    """Test Salesforce connectivity. Returns org info."""
     sf = _get_sf()
     return test_connection(sf)
 
@@ -87,45 +105,32 @@ def list_objects(
     queryable_only: bool = Query(True, description="Return only queryable objects"),
     custom_only: bool = Query(False, description="Return only custom objects"),
 ):
-    """
-    List all SObjects (tables) in the Salesforce org.
-    Optionally filter to queryable-only or custom-only.
-    """
+    """List all SObjects (tables) in the Salesforce org."""
     sf = _get_sf()
     objects = get_all_objects(sf)
-
     if queryable_only:
         objects = [o for o in objects if o["queryable"]]
     if custom_only:
         objects = [o for o in objects if o["custom"]]
-
-    return {
-        "total": len(objects),
-        "objects": objects,
-    }
+    return {"total": len(objects), "objects": objects}
 
 
 @router.get("/objects/{object_name}/metadata")
 def object_metadata(object_name: str):
-    """
-    Retrieve full metadata for a Salesforce object:
-    fields (name, type, length, nillable, etc.), child relationships, record types.
-    """
+    """Full metadata for a Salesforce object: fields, types, relationships."""
     sf = _get_sf()
     try:
         return get_object_metadata(sf, object_name)
     except Exception as e:
-        raise HTTPException(status_code=404, detail=f"Object '{object_name}' not found or error: {str(e)}")
+        raise HTTPException(status_code=404, detail=f"Object '{object_name}' not found: {str(e)}")
 
 
 @router.get("/objects/{object_name}/sample")
 def object_sample_data(
     object_name: str,
-    limit: int = Query(5, ge=1, le=50, description="Number of sample rows"),
+    limit: int = Query(5, ge=1, le=50),
 ):
-    """
-    Fetch sample rows from a Salesforce object using SOQL.
-    """
+    """Fetch sample rows from a Salesforce object using SOQL."""
     sf = _get_sf()
     try:
         return get_object_sample_data(sf, object_name, limit)
@@ -135,9 +140,7 @@ def object_sample_data(
 
 @router.get("/objects/{object_name}/fields")
 def object_fields(object_name: str):
-    """
-    Return just the fields list for a Salesforce object (lightweight version of /metadata).
-    """
+    """Return just the fields list for a Salesforce object."""
     sf = _get_sf()
     try:
         meta = get_object_metadata(sf, object_name)
