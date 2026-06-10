@@ -23,6 +23,20 @@ class Settings(BaseSettings):
     SAP_PASSWORD: str = ""  # For on-premise / Basic Auth
     SAP_AUTH_TYPE: str = "apikey"  # "apikey" or "basic"
 
+    # Oracle Fusion Cloud ERP
+    # Leave ORACLE_BASE_URL empty → Demo Mode (built-in real Oracle schema, no account needed)
+    # For real Oracle Cloud: set to  https://your-instance.fa.oc.oraclecloud.com
+    ORACLE_BASE_URL: str = ""
+    ORACLE_USERNAME: str = ""   # Oracle Cloud username (email)
+    ORACLE_PASSWORD: str = ""   # Oracle Cloud password
+
+    # Workday
+    # Leave WORKDAY_TENANT empty → Demo Mode (built-in real Workday schema, no account needed)
+    # For real Workday: register an API Client in Workday Security > OAuth 2.0 Clients
+    WORKDAY_TENANT: str = ""          # e.g.  mycompany  (from mycompany.workday.com)
+    WORKDAY_CLIENT_ID: str = ""       # OAuth 2.0 Client ID from Workday
+    WORKDAY_CLIENT_SECRET: str = ""   # OAuth 2.0 Client Secret from Workday
+
     APP_ENV: str = "development"
     CORS_ORIGINS: List[str] = ["http://localhost:5173"]
 
