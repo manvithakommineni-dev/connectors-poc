@@ -16,6 +16,13 @@ class Settings(BaseSettings):
     # HubSpot
     HS_ACCESS_TOKEN: str = ""
 
+    # SAP
+    SAP_BASE_URL: str = ""  # Leave empty to use sandbox: https://sandbox.api.sap.com/s4hanacloud/sap/opu/odata/sap
+    SAP_API_KEY: str = ""   # From https://api.sap.com → avatar → Settings → Show API Key
+    SAP_USERNAME: str = ""  # For on-premise / Basic Auth
+    SAP_PASSWORD: str = ""  # For on-premise / Basic Auth
+    SAP_AUTH_TYPE: str = "apikey"  # "apikey" or "basic"
+
     APP_ENV: str = "development"
     CORS_ORIGINS: List[str] = ["http://localhost:5173"]
 

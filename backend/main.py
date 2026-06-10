@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
 from salesforce.router import router as salesforce_router
 from hubspot.router import router as hubspot_router
+from sap.router import router as sap_router
 
 app = FastAPI(
     title="Connectors POC API",
@@ -20,6 +21,7 @@ app.add_middleware(
 
 app.include_router(salesforce_router, prefix="/api/v1")
 app.include_router(hubspot_router, prefix="/api/v1")
+app.include_router(sap_router, prefix="/api/v1")
 
 
 @app.get("/")
@@ -27,7 +29,7 @@ def root():
     return {
         "app": "Connectors POC",
         "version": "0.1.0",
-        "connectors": ["salesforce", "hubspot", "netsuite (coming)", "sap (coming)", "oracle (coming)"],
+        "connectors": ["salesforce", "hubspot", "sap", "netsuite (coming)", "oracle (coming)"],
         "docs": "/docs",
     }
 

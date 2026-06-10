@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import SalesforceExplorer from "./pages/SalesforceExplorer";
 import HubspotExplorer from "./pages/HubspotExplorer";
+import SAPExplorer from "./pages/SAPExplorer";
 import "./index.css";
 
 const queryClient = new QueryClient({
@@ -11,11 +12,12 @@ const queryClient = new QueryClient({
   },
 });
 
-type Connector = "salesforce" | "hubspot";
+type Connector = "salesforce" | "hubspot" | "sap";
 
 const CONNECTORS: { id: Connector; label: string; color: string; bg: string }[] = [
   { id: "salesforce", label: "Salesforce", color: "#60a5fa", bg: "#1e3a5f" },
-  { id: "hubspot", label: "HubSpot", color: "#fb923c", bg: "#431407" },
+  { id: "hubspot",    label: "HubSpot",    color: "#fb923c", bg: "#431407" },
+  { id: "sap",        label: "SAP",        color: "#c084fc", bg: "#1a0a2e" },
 ];
 
 function App() {
@@ -61,7 +63,8 @@ function App() {
       {/* Active connector view */}
       <div style={{ flex: 1, overflow: "hidden" }}>
         {active === "salesforce" && <SalesforceExplorer />}
-        {active === "hubspot" && <HubspotExplorer />}
+        {active === "hubspot"    && <HubspotExplorer />}
+        {active === "sap"        && <SAPExplorer />}
       </div>
     </div>
   );
