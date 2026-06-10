@@ -1,7 +1,11 @@
-import { UseQueryResult } from "@tanstack/react-query";
+interface QueryLike {
+  isLoading: boolean;
+  isError: boolean;
+  isSuccess: boolean;
+}
 
 interface Props {
-  query: UseQueryResult<any, any>;
+  query: QueryLike;
 }
 
 export default function ConnectionBadge({ query }: Props) {
