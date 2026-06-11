@@ -50,6 +50,19 @@ class Settings(BaseSettings):
     NS_CLIENT_ID: str = ""        # OAuth 2.0 Client ID from Manage Integrations
     NS_CLIENT_SECRET: str = ""    # OAuth 2.0 Client Secret
 
+    # Google Ads
+    # Leave GADS_DEVELOPER_TOKEN empty → Demo Mode (built-in real Google Ads v17 schema)
+    # To connect live:
+    #   1. Create Google Cloud project + enable Google Ads API
+    #   2. Create OAuth 2.0 Desktop credentials
+    #   3. Apply for Developer Token: Google Ads UI → Tools → API Center (test token is FREE)
+    #   4. Run OAuth2 flow to obtain refresh token
+    GADS_DEVELOPER_TOKEN: str = ""   # From Google Ads → Tools → API Center
+    GADS_CLIENT_ID: str = ""         # OAuth 2.0 Client ID from Google Cloud Console
+    GADS_CLIENT_SECRET: str = ""     # OAuth 2.0 Client Secret
+    GADS_REFRESH_TOKEN: str = ""     # Long-lived refresh token from OAuth flow
+    GADS_CUSTOMER_ID: str = ""       # Google Ads Customer ID (digits only, no dashes)
+
     APP_ENV: str = "development"
     CORS_ORIGINS: List[str] = ["http://localhost:5173"]
 

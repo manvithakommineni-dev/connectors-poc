@@ -8,10 +8,11 @@ from oracle.router import router as oracle_router
 from workday.router import router as workday_router
 from servicenow.router import router as servicenow_router
 from netsuite.router import router as netsuite_router
+from googleads.router import router as googleads_router
 
 app = FastAPI(
     title="Connectors POC API",
-    description="Metadata retrieval POC for Salesforce, Netsuite, Hubspot, SAP, Oracle Apps",
+    description="Metadata retrieval POC for Salesforce, Netsuite, Hubspot, SAP, Oracle Apps, Workday, ServiceNow, NetSuite, Google Ads",
     version="0.1.0",
 )
 
@@ -30,6 +31,7 @@ app.include_router(oracle_router, prefix="/api/v1")
 app.include_router(workday_router, prefix="/api/v1")
 app.include_router(servicenow_router, prefix="/api/v1")
 app.include_router(netsuite_router, prefix="/api/v1")
+app.include_router(googleads_router, prefix="/api/v1")
 
 
 @app.get("/")
@@ -37,7 +39,7 @@ def root():
     return {
         "app": "Connectors POC",
         "version": "0.1.0",
-        "connectors": ["salesforce", "hubspot", "sap", "oracle", "workday", "servicenow", "netsuite"],
+        "connectors": ["salesforce", "hubspot", "sap", "oracle", "workday", "servicenow", "netsuite", "googleads"],
         "docs": "/docs",
     }
 

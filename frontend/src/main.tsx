@@ -8,6 +8,7 @@ import OracleExplorer from "./pages/OracleExplorer";
 import WorkdayExplorer from "./pages/WorkdayExplorer";
 import ServiceNowExplorer from "./pages/ServiceNowExplorer";
 import NetSuiteExplorer from "./pages/NetSuiteExplorer";
+import { GoogleAdsExplorer } from "./pages/GoogleAdsExplorer";
 import "./index.css";
 
 const queryClient = new QueryClient({
@@ -16,7 +17,7 @@ const queryClient = new QueryClient({
   },
 });
 
-type Connector = "salesforce" | "hubspot" | "sap" | "oracle" | "workday" | "servicenow" | "netsuite";
+type Connector = "salesforce" | "hubspot" | "sap" | "oracle" | "workday" | "servicenow" | "netsuite" | "googleads";
 
 const CONNECTORS: { id: Connector; label: string; color: string; bg: string }[] = [
   { id: "salesforce",  label: "Salesforce",  color: "#60a5fa", bg: "#1e3a5f" },
@@ -26,6 +27,7 @@ const CONNECTORS: { id: Connector; label: string; color: string; bg: string }[] 
   { id: "workday",     label: "Workday",     color: "#60c8ff", bg: "#0a2540" },
   { id: "servicenow",  label: "ServiceNow",  color: "#a78bfa", bg: "#1e0a3c" },
   { id: "netsuite",    label: "NetSuite",    color: "#fb923c", bg: "#2d1200" },
+  { id: "googleads",   label: "Google Ads",  color: "#4ade80", bg: "#052e16" },
 ];
 
 function App() {
@@ -77,6 +79,7 @@ function App() {
         {active === "workday"    && <WorkdayExplorer />}
         {active === "servicenow" && <ServiceNowExplorer />}
         {active === "netsuite"   && <NetSuiteExplorer />}
+        {active === "googleads"  && <GoogleAdsExplorer />}
       </div>
     </div>
   );
