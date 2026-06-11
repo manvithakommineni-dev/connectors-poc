@@ -6,6 +6,8 @@ import HubspotExplorer from "./pages/HubspotExplorer";
 import SAPExplorer from "./pages/SAPExplorer";
 import OracleExplorer from "./pages/OracleExplorer";
 import WorkdayExplorer from "./pages/WorkdayExplorer";
+import ServiceNowExplorer from "./pages/ServiceNowExplorer";
+import NetSuiteExplorer from "./pages/NetSuiteExplorer";
 import "./index.css";
 
 const queryClient = new QueryClient({
@@ -14,14 +16,16 @@ const queryClient = new QueryClient({
   },
 });
 
-type Connector = "salesforce" | "hubspot" | "sap" | "oracle" | "workday";
+type Connector = "salesforce" | "hubspot" | "sap" | "oracle" | "workday" | "servicenow" | "netsuite";
 
 const CONNECTORS: { id: Connector; label: string; color: string; bg: string }[] = [
-  { id: "salesforce", label: "Salesforce", color: "#60a5fa", bg: "#1e3a5f" },
-  { id: "hubspot",    label: "HubSpot",    color: "#fb923c", bg: "#431407" },
-  { id: "sap",        label: "SAP",        color: "#c084fc", bg: "#1a0a2e" },
-  { id: "oracle",     label: "Oracle",     color: "#f87171", bg: "#3b0a0a" },
-  { id: "workday",    label: "Workday",    color: "#60c8ff", bg: "#0a2540" },
+  { id: "salesforce",  label: "Salesforce",  color: "#60a5fa", bg: "#1e3a5f" },
+  { id: "hubspot",     label: "HubSpot",     color: "#fb923c", bg: "#431407" },
+  { id: "sap",         label: "SAP",         color: "#c084fc", bg: "#1a0a2e" },
+  { id: "oracle",      label: "Oracle",      color: "#f87171", bg: "#3b0a0a" },
+  { id: "workday",     label: "Workday",     color: "#60c8ff", bg: "#0a2540" },
+  { id: "servicenow",  label: "ServiceNow",  color: "#a78bfa", bg: "#1e0a3c" },
+  { id: "netsuite",    label: "NetSuite",    color: "#fb923c", bg: "#2d1200" },
 ];
 
 function App() {
@@ -71,6 +75,8 @@ function App() {
         {active === "sap"        && <SAPExplorer />}
         {active === "oracle"     && <OracleExplorer />}
         {active === "workday"    && <WorkdayExplorer />}
+        {active === "servicenow" && <ServiceNowExplorer />}
+        {active === "netsuite"   && <NetSuiteExplorer />}
       </div>
     </div>
   );

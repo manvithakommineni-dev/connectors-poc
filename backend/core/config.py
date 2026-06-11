@@ -37,6 +37,19 @@ class Settings(BaseSettings):
     WORKDAY_CLIENT_ID: str = ""       # OAuth 2.0 Client ID from Workday
     WORKDAY_CLIENT_SECRET: str = ""   # OAuth 2.0 Client Secret from Workday
 
+    # ServiceNow
+    # Get a FREE Personal Developer Instance at https://developer.servicenow.com
+    SN_INSTANCE_URL: str = ""    # e.g.  https://dev12345.service-now.com
+    SN_USERNAME: str = "admin"   # Default username for developer instances
+    SN_PASSWORD: str = ""        # Password set when you activated your instance
+
+    # NetSuite
+    # Get a 30-day free trial at https://www.netsuite.com
+    # Account ID is in your NetSuite URL: https://ACCOUNTID.app.netsuite.com
+    NS_ACCOUNT_ID: str = ""       # e.g.  1234567  or  1234567_SB1 for sandbox
+    NS_CLIENT_ID: str = ""        # OAuth 2.0 Client ID from Manage Integrations
+    NS_CLIENT_SECRET: str = ""    # OAuth 2.0 Client Secret
+
     APP_ENV: str = "development"
     CORS_ORIGINS: List[str] = ["http://localhost:5173"]
 

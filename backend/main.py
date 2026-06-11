@@ -6,6 +6,8 @@ from hubspot.router import router as hubspot_router
 from sap.router import router as sap_router
 from oracle.router import router as oracle_router
 from workday.router import router as workday_router
+from servicenow.router import router as servicenow_router
+from netsuite.router import router as netsuite_router
 
 app = FastAPI(
     title="Connectors POC API",
@@ -26,6 +28,8 @@ app.include_router(hubspot_router, prefix="/api/v1")
 app.include_router(sap_router, prefix="/api/v1")
 app.include_router(oracle_router, prefix="/api/v1")
 app.include_router(workday_router, prefix="/api/v1")
+app.include_router(servicenow_router, prefix="/api/v1")
+app.include_router(netsuite_router, prefix="/api/v1")
 
 
 @app.get("/")
@@ -33,7 +37,7 @@ def root():
     return {
         "app": "Connectors POC",
         "version": "0.1.0",
-        "connectors": ["salesforce", "hubspot", "sap", "oracle", "workday", "netsuite (coming)"],
+        "connectors": ["salesforce", "hubspot", "sap", "oracle", "workday", "servicenow", "netsuite"],
         "docs": "/docs",
     }
 
