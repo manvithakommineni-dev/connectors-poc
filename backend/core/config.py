@@ -63,6 +63,27 @@ class Settings(BaseSettings):
     GADS_REFRESH_TOKEN: str = ""     # Long-lived refresh token from OAuth flow
     GADS_CUSTOMER_ID: str = ""       # Google Ads Customer ID (digits only, no dashes)
 
+    # Google Analytics 4 (GA4) — FREE, no payment required
+    # 1. Create GA4 property at https://analytics.google.com
+    # 2. Google Cloud: enable Analytics Data API + Analytics Admin API
+    # 3. Create service account → download JSON key
+    # 4. Add service account email to GA4 Admin → Property access → Viewer
+    GA4_PROPERTY_ID: str = ""              # Numeric property ID from GA4 Admin → Property Settings
+    GA4_SERVICE_ACCOUNT_FILE: str = ""     # Path to service account JSON key file
+
+    # Meta Ads (Facebook + Instagram) — live API only, no demo mode
+    # 1. Create app at developers.facebook.com → Business type → add Marketing API
+    # 2. Generate access token with ads_read (Graph API Explorer or System User)
+    # 3. Ad account ID from Business Manager (act_123456789)
+    META_ACCESS_TOKEN: str = ""            # Long-lived user or system user token with ads_read
+    META_AD_ACCOUNT_ID: str = ""           # Ad account ID (with or without act_ prefix)
+    META_API_VERSION: str = "v21.0"        # Graph API version
+
+    # Adjust — live API only, no demo mode
+    # Free Base plan at https://www.adjust.com (1,500 attributions/month, 12 months)
+    # API Token: Adjust dashboard → Account settings → My profile → API Token
+    ADJUST_API_TOKEN: str = ""
+
     APP_ENV: str = "development"
     CORS_ORIGINS: List[str] = ["http://localhost:5173"]
 
