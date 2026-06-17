@@ -1,6 +1,10 @@
+from pathlib import Path
+
 from pydantic_settings import BaseSettings
 from pydantic import field_validator
 from typing import List, Any
+
+_ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
 
 
 class Settings(BaseSettings):
@@ -79,6 +83,14 @@ class Settings(BaseSettings):
     META_AD_ACCOUNT_ID: str = ""           # Ad account ID (with or without act_ prefix)
     META_API_VERSION: str = "v21.0"        # Graph API version
 
+    # Workato — live Developer API only (iPaaS platform)
+    # 1. Request trial at https://www.workato.com
+    # 2. Workspace admin → API clients → create role + client → copy token
+    # 3. Trial base URL: https://app.trial.workato.com/api
+    #    Production US:  https://www.workato.com/api
+    WORKATO_API_TOKEN: str = ""
+    WORKATO_API_BASE_URL: str = "https://app.trial.workato.com/api"
+
     # Adjust — live API only, no demo mode
     # Free Base plan at https://www.adjust.com (1,500 attributions/month, 12 months)
     # API Token: Adjust dashboard → Account settings → My profile → API Token
@@ -98,7 +110,7 @@ class Settings(BaseSettings):
             return [origin.strip() for origin in v.split(",")]
         return v
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    model_config = {"env_file": str(_ENV_FILE), "env_file_encoding": "utf-8"}
 
 
 settings = Settings()

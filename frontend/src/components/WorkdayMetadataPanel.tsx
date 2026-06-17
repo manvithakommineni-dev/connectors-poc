@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { workdayApi, WorkdayField, WorkdayRelated } from "../api/workday";
+import { workdayApi } from "../api/workday";
+import type { WorkdayField, WorkdayRelated } from "../api/workday";
 
 interface Props {
   objectName: string;

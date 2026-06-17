@@ -11,6 +11,7 @@ build/
 venv/
 env/
 .env
+backend/keys/
 
 # Node
 node_modules/

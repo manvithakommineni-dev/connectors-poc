@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { oracleApi, OracleResourceSummary } from "../api/oracle";
+import { oracleApi } from "../api/oracle";
+import type { OracleResourceSummary } from "../api/oracle";
 import { OracleMetadataPanel } from "../components/OracleMetadataPanel";
 
 const MODULE_COLORS: Record<string, string> = {

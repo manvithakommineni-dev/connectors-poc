@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { workdayApi, WorkdayObjectSummary } from "../api/workday";
+import { workdayApi } from "../api/workday";
+import type { WorkdayObjectSummary } from "../api/workday";
 import { WorkdayMetadataPanel } from "../components/WorkdayMetadataPanel";
 
 const MODULE_COLORS: Record<string, string> = {

@@ -1,4 +1,4 @@
-import { GA4ItemDetail } from "../api/ga4";
+import type { GA4ItemDetail } from "../api/ga4";
 
 interface Props {
   item: GA4ItemDetail;

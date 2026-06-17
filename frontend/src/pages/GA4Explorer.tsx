@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ga4Api, GA4Category, GA4Item } from "../api/ga4";
+import { ga4Api } from "../api/ga4";
+import type { GA4Category, GA4Item } from "../api/ga4";
 import { GA4MetadataPanel } from "../components/GA4MetadataPanel";
 
 const CATEGORY_ICONS: Record<string, string> = {

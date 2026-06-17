@@ -12,6 +12,7 @@ import { GoogleAdsExplorer } from "./pages/GoogleAdsExplorer";
 import { GA4Explorer } from "./pages/GA4Explorer";
 import { MetaAdsExplorer } from "./pages/MetaAdsExplorer";
 import { AdjustExplorer } from "./pages/AdjustExplorer";
+import { WorkatoExplorer } from "./pages/WorkatoExplorer";
 import "./index.css";
 
 const queryClient = new QueryClient({
@@ -20,7 +21,7 @@ const queryClient = new QueryClient({
   },
 });
 
-type Connector = "salesforce" | "hubspot" | "sap" | "oracle" | "workday" | "servicenow" | "netsuite" | "googleads" | "ga4" | "metaads" | "adjust";
+type Connector = "salesforce" | "hubspot" | "sap" | "oracle" | "workday" | "servicenow" | "netsuite" | "googleads" | "ga4" | "metaads" | "adjust" | "workato";
 
 const CONNECTORS: { id: Connector; label: string; color: string; bg: string }[] = [
   { id: "salesforce",  label: "Salesforce",  color: "#60a5fa", bg: "#1e3a5f" },
@@ -34,6 +35,7 @@ const CONNECTORS: { id: Connector; label: string; color: string; bg: string }[] 
   { id: "ga4",         label: "GA4",         color: "#fbbf24", bg: "#422006" },
   { id: "metaads",     label: "Meta Ads",    color: "#60a5fa", bg: "#1e3a5f" },
   { id: "adjust",      label: "Adjust",      color: "#34d399", bg: "#064e3b" },
+  { id: "workato",     label: "Workato",     color: "#a78bfa", bg: "#2e1065" },
 ];
 
 function App() {
@@ -89,6 +91,7 @@ function App() {
         {active === "ga4"        && <GA4Explorer />}
         {active === "metaads"    && <MetaAdsExplorer />}
         {active === "adjust"     && <AdjustExplorer />}
+        {active === "workato"   && <WorkatoExplorer />}
       </div>
     </div>
   );

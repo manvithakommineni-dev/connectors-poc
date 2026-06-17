@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { oracleApi, OracleAttribute, OracleChildResource } from "../api/oracle";
+import { oracleApi } from "../api/oracle";
+import type { OracleAttribute, OracleChildResource } from "../api/oracle";
 
 interface Props {
   resourceName: string;

@@ -1,4 +1,4 @@
-import { AdjustItemDetail } from "../api/adjust";
+import type { AdjustItemDetail } from "../api/adjust";
 
 interface Props {
   item: AdjustItemDetail;

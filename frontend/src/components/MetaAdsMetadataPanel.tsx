@@ -1,4 +1,4 @@
-import { MetaItemDetail } from "../api/metaads";
+import type { MetaItemDetail } from "../api/metaads";
 
 interface Props {
   item: MetaItemDetail;

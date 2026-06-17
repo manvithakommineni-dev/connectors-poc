@@ -1,4 +1,4 @@
-import { GAdsResourceDetail, GAdsField } from "../api/googleads";
+import type { GAdsResourceDetail, GAdsField } from "../api/googleads";
 
 interface Props {
   resource: GAdsResourceDetail;

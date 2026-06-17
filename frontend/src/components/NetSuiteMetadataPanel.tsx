@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { netsuiteApi, NSField } from "../api/netsuite";
+import { netsuiteApi } from "../api/netsuite";
+import type { NSField } from "../api/netsuite";
 
 interface Props { recordType: string; }
 

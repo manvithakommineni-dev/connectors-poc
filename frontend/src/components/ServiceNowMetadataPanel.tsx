@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { servicenowApi, SNField } from "../api/servicenow";
+import { servicenowApi } from "../api/servicenow";
+import type { SNField } from "../api/servicenow";
 
 interface Props {
   tableName: string;

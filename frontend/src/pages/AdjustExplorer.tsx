@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { adjustApi, AdjustCategory, AdjustItem } from "../api/adjust";
+import { adjustApi } from "../api/adjust";
+import type { AdjustCategory, AdjustItem } from "../api/adjust";
 import { AdjustMetadataPanel } from "../components/AdjustMetadataPanel";
 
 const CATEGORY_ICONS: Record<string, string> = {

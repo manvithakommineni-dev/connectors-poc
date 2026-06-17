@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { netsuiteApi, NSRecordSummary } from "../api/netsuite";
+import { netsuiteApi } from "../api/netsuite";
+import type { NSRecordSummary } from "../api/netsuite";
 import { NetSuiteMetadataPanel } from "../components/NetSuiteMetadataPanel";
 
 const MODULE_COLORS: Record<string, string> = {

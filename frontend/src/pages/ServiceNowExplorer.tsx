@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { servicenowApi, SNTableSummary } from "../api/servicenow";
+import { servicenowApi } from "../api/servicenow";
+import type { SNTableSummary } from "../api/servicenow";
 import { ServiceNowMetadataPanel } from "../components/ServiceNowMetadataPanel";
 
 const CAT_COLORS: Record<string, string> = {

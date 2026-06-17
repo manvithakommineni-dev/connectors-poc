@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { googleAdsApi, GAdsCategory, GAdsResourceSummary, GAdsResourceDetail } from "../api/googleads";
+import { googleAdsApi } from "../api/googleads";
+import type { GAdsCategory, GAdsResourceSummary, GAdsResourceDetail } from "../api/googleads";
 import { GoogleAdsMetadataPanel } from "../components/GoogleAdsMetadataPanel";
 
 const CATEGORY_ICONS: Record<string, string> = {

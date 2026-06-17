@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { metaAdsApi, MetaCategory, MetaItem } from "../api/metaads";
+import { metaAdsApi } from "../api/metaads";
+import type { MetaCategory, MetaItem } from "../api/metaads";
 import { MetaAdsMetadataPanel } from "../components/MetaAdsMetadataPanel";
 
 const CATEGORY_ICONS: Record<string, string> = {
