@@ -219,7 +219,7 @@ def test_connection() -> dict:
     _check_config()
     fields = (
         "id,account_id,name,account_status,currency,timezone_name,amount_spent,"
-        "balance,business_name,age,min_daily_budget,disable_reason,funding_source_details"
+        "balance,business_name,age,min_daily_budget,disable_reason"
     )
     acct = _graph_get(_ad_account_id(), {"fields": fields})
 
@@ -272,7 +272,7 @@ def list_items(category_id: str) -> dict:
     if category_id == "account":
         fields = (
             "id,account_id,name,account_status,currency,timezone_name,amount_spent,"
-            "balance,business_name,created_time,age,funding_source_details"
+            "balance,business_name,created_time,age"
         )
         acct = _graph_get(_ad_account_id(), {"fields": fields})
         return {
