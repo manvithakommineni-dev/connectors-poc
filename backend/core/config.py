@@ -66,6 +66,7 @@ class Settings(BaseSettings):
     GADS_CLIENT_SECRET: str = ""     # OAuth 2.0 Client Secret
     GADS_REFRESH_TOKEN: str = ""     # Long-lived refresh token from OAuth flow
     GADS_CUSTOMER_ID: str = ""       # Google Ads Customer ID (digits only, no dashes)
+    GADS_LOGIN_CUSTOMER_ID: str = "" # Manager (MCC) ID — required when using MCC developer token
 
     # Google Analytics 4 (GA4) — FREE, no payment required
     # 1. Create GA4 property at https://analytics.google.com
@@ -83,6 +84,37 @@ class Settings(BaseSettings):
     META_AD_ACCOUNT_ID: str = ""           # Ad account ID (with or without act_ prefix)
     META_API_VERSION: str = "v21.0"        # Graph API version
 
+    # Facebook Page (organic content) — FREE for your own Page as app admin/test user
+    # 1. Create a Facebook Page (free) at facebook.com/pages/create
+    # 2. Same Meta Developer app → add Facebook Login → get Page access token
+    # 3. Scopes: pages_read_engagement, pages_show_list (+ read_insights for insights)
+    # 4. Page ID from Page Settings → About, or Graph API Explorer GET /me/accounts
+    FACEBOOK_PAGE_ACCESS_TOKEN: str = ""   # Page access token (not the ads token)
+    FACEBOOK_PAGE_ID: str = ""             # Numeric Page ID
+    FACEBOOK_API_VERSION: str = "v21.0"    # Graph API version
+
+    # Instagram (organic) — FREE for your own Business/Creator account as app admin
+    # 1. Instagram Business or Creator account linked to your Facebook Page
+    # 2. Graph API token with instagram_basic (+ pages_show_list)
+    # 3. IG account ID from GET /{page-id}?fields=instagram_business_account
+    # Can reuse FACEBOOK_PAGE_ACCESS_TOKEN and FACEBOOK_PAGE_ID if already set
+    INSTAGRAM_ACCESS_TOKEN: str = ""       # Page token with instagram_basic (or reuse Facebook token)
+    INSTAGRAM_ACCOUNT_ID: str = ""         # Instagram Business account ID (auto from Page if empty)
+    INSTAGRAM_API_VERSION: str = "v21.0"   # Graph API version
+
+    # Adobe Analytics 2.0 — LIVE requires paid Analytics license + Adobe Developer Console
+    # Leave ADOBE_CLIENT_ID empty → Demo Mode (built-in Analytics 2.0 schema)
+    # 1. Adobe Developer Console → project → Add API → Adobe Analytics
+    # 2. OAuth Server-to-Server credentials (Client ID + Secret)
+    # 3. Adobe Admin Console → product profile with report suite permissions
+    # 4. Global Company ID + Report Suite ID (rsid) from Analytics Admin
+    ADOBE_CLIENT_ID: str = ""
+    ADOBE_CLIENT_SECRET: str = ""
+    ADOBE_ACCESS_TOKEN: str = ""           # Optional — auto via client credentials if empty
+    ADOBE_GLOBAL_COMPANY_ID: str = ""      # e.g. mycompany0
+    ADOBE_REPORT_SUITE_ID: str = ""        # Report suite rsid
+    ADOBE_OAUTH_SCOPE: str = ""            # Optional IMS scope override
+
     # Workato — live Developer API only (iPaaS platform)
     # 1. Request trial at https://www.workato.com
     # 2. Workspace admin → API clients → create role + client → copy token
@@ -95,6 +127,20 @@ class Settings(BaseSettings):
     # Free Base plan at https://www.adjust.com (1,500 attributions/month, 12 months)
     # API Token: Adjust dashboard → Account settings → My profile → API Token
     ADJUST_API_TOKEN: str = ""
+
+    # Pinterest API v5 — FREE Trial access at developers.pinterest.com
+    # 1. Pinterest Business account → developers.pinterest.com → Connect app → Trial access
+    # 2. OAuth token or trial token with ads_read (+ boards:read, pins:read for organic)
+    # 3. Ad account ID from Pinterest Ads Manager or GET /ad_accounts
+    PINTEREST_ACCESS_TOKEN: str = ""
+    PINTEREST_AD_ACCOUNT_ID: str = ""
+
+    # YouTube Data API v3 — FREE (Google Cloud, enable YouTube Data API v3)
+    # OAuth access token with youtube.readonly scope, or API key for public channel reads
+    # Channel ID: YouTube Studio → Settings → Channel → Advanced settings
+    YOUTUBE_ACCESS_TOKEN: str = ""
+    YOUTUBE_CHANNEL_ID: str = ""
+    YOUTUBE_API_KEY: str = ""
 
     APP_ENV: str = "development"
     CORS_ORIGINS: List[str] = ["http://localhost:5173"]

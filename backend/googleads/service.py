@@ -57,7 +57,7 @@ from core.config import settings
 
 logger = logging.getLogger(__name__)
 
-GADS_API_BASE = "https://googleads.googleapis.com/v17"
+GADS_API_BASE = "https://googleads.googleapis.com/v24"
 GADS_TOKEN_URL = "https://oauth2.googleapis.com/token"
 GADS_FIELD_SEARCH_URL = f"{GADS_API_BASE}/googleAdsFields:search"
 
@@ -307,11 +307,14 @@ def _get_access_token() -> str:
 
 def _headers() -> dict:
     token = _get_access_token()
-    return {
+    headers = {
         "Authorization": f"Bearer {token}",
         "developer-token": settings.GADS_DEVELOPER_TOKEN,
         "Content-Type": "application/json",
     }
+    if settings.GADS_LOGIN_CUSTOMER_ID:
+        headers["login-customer-id"] = settings.GADS_LOGIN_CUSTOMER_ID
+    return headers
 
 
 def _search_fields(query: str) -> list:
@@ -325,7 +328,7 @@ def _search_fields(query: str) -> list:
         raise ConnectionError("Google Ads authentication failed. Check credentials in .env")
     if not resp.ok:
         raise RuntimeError(f"Google Ads API error [{resp.status_code}]: {resp.text[:400]}")
-    return resp.json().get("googleAdsFields", [])
+    return resp.json().get("results", [])
 
 
 # ─────────────────────────────────────────────────────────
@@ -347,11 +350,11 @@ def test_connection() -> dict:
             "categories_count": len(DEMO_CATEGORIES),
             "total_resources": total_resources,
             "total_fields": total_fields,
-            "api_version": "v17",
+            "api_version": "v24",
         }
 
     fields = _search_fields(
-        "SELECT name FROM google_ads_field WHERE category = 'RESOURCE' LIMIT 1"
+        "SELECT name, category WHERE name = 'campaign'"
     )
     return {
         "connected": True,
@@ -411,22 +414,22 @@ def get_resource_fields(resource_name: str) -> dict:
             "mode": "demo",
         }
 
-    # Live: query GoogleAdsFieldService
+    # Live: query GoogleAdsFieldService (no FROM clause — see Google Ads Field Service GAQL)
     query = (
-        f"SELECT name, category_type, data_type, filterable, selectable, sortable, is_repeated, description "
-        f"FROM google_ads_field WHERE resource_name = '{resource_name}' ORDER BY name"
+        f"SELECT name, category, data_type, filterable, selectable, sortable, is_repeated "
+        f"WHERE name LIKE '{resource_name}.%'"
     )
     raw_fields = _search_fields(query)
     fields = [
         {
             "name": f.get("name", ""),
             "label": f.get("name", "").replace(f"{resource_name}.", "").replace("_", " ").title(),
-            "data_type": f.get("dataType", "STRING"),
-            "category": f.get("categoryType", "ATTRIBUTE"),
+            "data_type": f.get("dataType", f.get("data_type", "STRING")),
+            "category": f.get("category", "ATTRIBUTE"),
             "filterable": f.get("filterable", False),
             "selectable": f.get("selectable", False),
             "sortable": f.get("sortable", False),
-            "is_repeated": f.get("isRepeated", False),
+            "is_repeated": f.get("isRepeated", f.get("is_repeated", False)),
             "description": f.get("description", ""),
         }
         for f in raw_fields

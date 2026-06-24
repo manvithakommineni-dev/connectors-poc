@@ -11,6 +11,11 @@ import NetSuiteExplorer from "./pages/NetSuiteExplorer";
 import { GoogleAdsExplorer } from "./pages/GoogleAdsExplorer";
 import { GA4Explorer } from "./pages/GA4Explorer";
 import { MetaAdsExplorer } from "./pages/MetaAdsExplorer";
+import { PinterestExplorer } from "./pages/PinterestExplorer";
+import { YouTubeExplorer } from "./pages/YouTubeExplorer";
+import { FacebookExplorer } from "./pages/FacebookExplorer";
+import { InstagramExplorer } from "./pages/InstagramExplorer";
+import { AdobeAnalyticsExplorer } from "./pages/AdobeAnalyticsExplorer";
 import { AdjustExplorer } from "./pages/AdjustExplorer";
 import { WorkatoExplorer } from "./pages/WorkatoExplorer";
 import "./index.css";
@@ -21,7 +26,7 @@ const queryClient = new QueryClient({
   },
 });
 
-type Connector = "salesforce" | "hubspot" | "sap" | "oracle" | "workday" | "servicenow" | "netsuite" | "googleads" | "ga4" | "metaads" | "adjust" | "workato";
+type Connector = "salesforce" | "hubspot" | "sap" | "oracle" | "workday" | "servicenow" | "netsuite" | "googleads" | "ga4" | "metaads" | "pinterest" | "youtube" | "facebook" | "instagram" | "adobeanalytics" | "adjust" | "workato";
 
 const CONNECTORS: { id: Connector; label: string; color: string; bg: string }[] = [
   { id: "salesforce",  label: "Salesforce",  color: "#60a5fa", bg: "#1e3a5f" },
@@ -34,6 +39,11 @@ const CONNECTORS: { id: Connector; label: string; color: string; bg: string }[] 
   { id: "googleads",   label: "Google Ads",  color: "#4ade80", bg: "#052e16" },
   { id: "ga4",         label: "GA4",         color: "#fbbf24", bg: "#422006" },
   { id: "metaads",     label: "Meta Ads",    color: "#60a5fa", bg: "#1e3a5f" },
+  { id: "pinterest",   label: "Pinterest",   color: "#E60023", bg: "#3b0a0a" },
+  { id: "youtube",     label: "YouTube",     color: "#FF0000", bg: "#3b0a0a" },
+  { id: "facebook",    label: "Facebook",    color: "#60a5fa", bg: "#1e3a5f" },
+  { id: "instagram",   label: "Instagram",   color: "#E1306C", bg: "#3b0a2e" },
+  { id: "adobeanalytics", label: "Adobe Analytics", color: "#EB1000", bg: "#3b0a0a" },
   { id: "adjust",      label: "Adjust",      color: "#34d399", bg: "#064e3b" },
   { id: "workato",     label: "Workato",     color: "#a78bfa", bg: "#2e1065" },
 ];
@@ -90,6 +100,11 @@ function App() {
         {active === "googleads"  && <GoogleAdsExplorer />}
         {active === "ga4"        && <GA4Explorer />}
         {active === "metaads"    && <MetaAdsExplorer />}
+        {active === "pinterest"  && <PinterestExplorer />}
+        {active === "youtube"    && <YouTubeExplorer />}
+        {active === "facebook"   && <FacebookExplorer />}
+        {active === "instagram"  && <InstagramExplorer />}
+        {active === "adobeanalytics" && <AdobeAnalyticsExplorer />}
         {active === "adjust"     && <AdjustExplorer />}
         {active === "workato"   && <WorkatoExplorer />}
       </div>
